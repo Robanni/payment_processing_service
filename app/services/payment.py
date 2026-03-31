@@ -34,6 +34,7 @@ async def create_payment(
         webhook_url=webhook_url,
     )
     db.add(payment)
+    await db.flush()
     db.add(
         OutboxEvent(
             id=uuid.uuid4(),

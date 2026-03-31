@@ -5,9 +5,7 @@ from datetime import datetime, timezone
 
 import httpx
 from faststream import FastStream
-from faststream.rabbit import RabbitExchange, RabbitQueue
 from faststream.rabbit.annotations import RabbitMessage
-from faststream.rabbit.schemas import ExchangeType
 
 from app.broker import broker, payments_exchange, payments_queue
 from app.db.models import Payment
@@ -20,15 +18,6 @@ logger = logging.getLogger(__name__)
 MAX_RETRIES = 3
 
 app = FastStream(broker)
-
-
-@app.on_startup
-async def declare_dlx_topology() -> None:
-    dlx = RabbitExchange("payments.dlx", type=ExchangeType.DIRECT, durable=True)
-    dlq = RabbitQueue("payments.dlq", durable=True)
-    declared_dlx = await broker.declare_exchange(dlx)
-    declared_dlq = await broker.declare_queue(dlq)
-    await declared_dlq.bind(declared_dlx, routing_key="payments.new")
 
 
 async def _send_webhook(url: str, payload: dict) -> None:
